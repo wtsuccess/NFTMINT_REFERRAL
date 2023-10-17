@@ -41,11 +41,11 @@ contract ERC721NFT is Referral, ERC721Enumerable {
         maxSupply = 100;
         setBaseURI(_baseTokenURI);
         paymentEngine = IPaymentEngine(_paymentEngineAdd);
-        _idForPaymentEngine = 1;
+        _idForPaymentEngine = 0;
         GS50 = IERC20(_GS50Address);
     }
 
-    function buyMint(uint _count, bytes32 _referralCode) external payable {
+    function buyMint(uint256 _count, bytes32 _referralCode) external payable {
         uint256 totalMinted = _tokenIds.current();
         require(publicMint, "ERROR: Public mint has not started");
         require(totalMinted.add(_count) <= maxSupply, "Not enough NFTs!");

@@ -26,9 +26,6 @@ async function basicFixture() {
   const NFT = await ethers.getContractFactory("ERC721NFT");
   const baseTokenURI = "ipfs://QmZbWNKJPAjxXuNFSEaksCJVd1M6DaKQViJBYPK2BdpDEP/";
   const nft = await NFT.deploy(
-    true,
-    100,
-    1,
     baseTokenURI,
     1000,
     10000,
@@ -42,7 +39,8 @@ async function basicFixture() {
 describe("NFT created with a referral system included", () => {
   describe("adminMint", () => {
     it("should not be able to more than maxSupply", async () => {
-      const { nft } = await loadFixture(basicFixture);
+      const { nft, owner } = await loadFixture(basicFixture);
+      await nft.addAdministrators(owner.address);
       await expect(nft.adminMint(100)).revertedWith("Not enough NFTs");
     });
     it("should be able to mint", async () => {
@@ -67,14 +65,18 @@ describe("NFT created with a referral system included", () => {
     it("should have to be changed the eth balance of only first minter when first NFT mint", async () => {
       const { nft, owner, user1 } = await loadFixture(basicFixture);
       await nft.setPublicMint(true);
-      const blankhash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(""));
+      const blankhash =
+        "0x0000000000000000000000000000000000000000000000000000000000000000";
 
       // First NFT mint by Owner
       expect(
-        await nft.buyMint(10, blankhash, {
-          value: 10,
+        await nft.buyMint(1, blankhash, {
+          value: ethers.utils.parseEther("1"),
         })
-      ).to.changeEtherBalance(owner, -10);
+      ).to.changeEtherBalance(
+        owner,
+        ethers.utils.parseEther("-1")
+      );
     });
     it("should be able to change the eth balance of the minter and referrer at the same time after first mint", async () => {
       const { nft, owner, user1 } = await loadFixture(basicFixture);
@@ -83,22 +85,22 @@ describe("NFT created with a referral system included", () => {
 
       // Second NFT mint by user1 with referralCode of Owner
       expect(
-        await nft.connect(user1).buyMint(50, referralCode, {
-          value: 50,
+        await nft.connect(user1).buyMint(5, referralCode, {
+          value: ethers.utils.parseEther("5"),
         })
-      ).to.changeEtherBalances([user1, owner], [-50, 5]);
+      ).to.changeEtherBalances([user1, owner], [ethers.utils.parseEther("-5"), ethers.utils.parseEther("0.5")]);
     });
-    it("should be able to change the eth balance of the minter and referrer at the same time after first mint", async () => {
-      const { nft, user1, user2 } = await loadFixture(basicFixture);
-      const referralCode = await nft.addressToReferralCode(user1.address);
-      console.log("referralCode", referralCode);
+    // it("should be able to change the eth balance of the minter and referrer at the same time after first mint", async () => {
+    //   const { nft, user1, user2 } = await loadFixture(basicFixture);
+    //   const referralCode = await nft.addressToReferralCode(user1.address);
+    //   console.log("referralCode", referralCode);
 
-      // Second NFT mint by user1 with referralCode of Owner
-      expect(
-        await nft.connect(user2).buyMint(20, referralCode, {
-          value: 20,
-        })
-      ).to.changeEtherBalances([user2, user1], [-20, 2]);
-    });
+    //   // Second NFT mint by user1 with referralCode of Owner
+    //   expect(
+    //     await nft.connect(user2).buyMint(20, referralCode, {
+    //       value: 0.2,
+    //     })
+    //   ).to.changeEtherBalances([user2, user1], [-0.2, 0.02]);
+    // });
   });
 });

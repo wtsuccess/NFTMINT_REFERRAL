@@ -22,7 +22,6 @@ contract ERC721NFT is Referral, ERC721Enumerable {
     uint256 public maxSupply;
     uint256 public _idForPaymentEngine;
 
-    // mapping(uint256 => bool) public idForSale;
     mapping(address => bool) public administrators;
 
     string public baseTokenURI;
@@ -37,7 +36,6 @@ contract ERC721NFT is Referral, ERC721Enumerable {
         address _paymentEngineAdd,
         address _GS50Address
     ) ERC721("ReferralNFT", "RNFT") Referral(_referralBonus, _decimals) {
-        // idForSale[1] = true,
         price = 0.01 ether;
         publicMint = true;
         maxSupply = 100;
@@ -63,30 +61,20 @@ contract ERC721NFT is Referral, ERC721Enumerable {
         }
 
         generateReferralCode(msg.sender);
-        if (totalMinted == 0) {
-            paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
-            GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
-            return;
-        }
-
         if (_referralCode == bytes32(0)) {
             paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
             GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
             return;
         }
+
         address referrer = referralCodeToAddress[_referralCode];
-        console.log("user", msg.sender);
-        console.log("referrer", referrer);
-        if (referrer != address(0)) {
-            require(
-                balanceOf(referrer) > 0,
-                "Referrer is no longer NFT holder!"
-            );
-            payReferral(referrer, price.mul(_count));
+        uint256 totalReferral;
+        if (balanceOf(referrer) > 0) {
+            totalReferral = payReferral(referrer, price.mul(_count));
         }
-
-        paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
-
+        paymentEngine.buyGS50{value: msg.value - totalReferral}(
+            _idForPaymentEngine
+        );
         GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
     }
 
@@ -97,7 +85,6 @@ contract ERC721NFT is Referral, ERC721Enumerable {
 
     function adminMint(uint256 reservedNFT) external onlyAdmin {
         uint totalMinted = _tokenIds.current();
-        // require(idForSale[id], "ERROR: This token id is not on sale");
         require(totalMinted.add(reservedNFT) < maxSupply, "Not enough NFTs");
         for (uint i = 0; i < reservedNFT; i++) {
             _mintSingleNFT();

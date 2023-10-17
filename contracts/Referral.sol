@@ -13,26 +13,25 @@ contract Referral is Ownable {
     uint256 public referralBonus;
     uint256 public decimals;
 
-    mapping(address => bytes32) public addressToReferralCode; 
-    mapping(bytes32 => address) public referralCodeToAddress; 
+    mapping(address => bytes32) public addressToReferralCode;
+    mapping(bytes32 => address) public referralCodeToAddress;
 
     event RegisteredReferralCode(address referee, bytes32 referralCode);
     event PaidReferral(address from, address to, uint amount);
 
-    constructor(
-        uint256 _referralBonus,
-        uint256 _decimals
-    ) {
+    constructor(uint256 _referralBonus, uint256 _decimals) {
         referralBonus = _referralBonus;
         decimals = _decimals;
     }
 
-    function payReferral(address referrer, uint256 value) internal {
-        uint256 totalReferal = (value.mul(referralBonus)).div(
-            decimals
-        );
+    function payReferral(
+        address referrer,
+        uint256 value
+    ) internal returns (uint256) {
+        uint256 totalReferal = (value.mul(referralBonus)).div(decimals);
         payable(referrer).transfer(totalReferal);
         emit PaidReferral(msg.sender, referrer, totalReferal);
+        return totalReferal;
     }
 
     function generateReferralCode(address addr) public {

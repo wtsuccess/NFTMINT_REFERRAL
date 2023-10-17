@@ -10,7 +10,7 @@ async function basicFixture() {
   // const NFT = await ethers.getContractFactory("NFTReferal");
   const NFT = await ethers.getContractFactory("ERC721NFT");
   const baseTokenURI = "ipfs://QmZbWNKJPAjxXuNFSEaksCJVd1M6DaKQViJBYPK2BdpDEP/";
-  const nft = await NFT.deploy(true, 100, 1, baseTokenURI, 1000, 10000);
+  const nft = await NFT.deploy(true, 100, 1, baseTokenURI, 1000, 10000, );
   await nft.deployed();
   return { nft, owner, user1, user2, user1Address, user2Address };
 }

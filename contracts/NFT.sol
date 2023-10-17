@@ -43,7 +43,7 @@ contract ERC721NFT is Referral, ERC721Enumerable {
         setBaseURI(_baseTokenURI);
         price = _price;
         paymentEngine = IPaymentEngine(_paymentEngineAdd);
-        _idForPaymentEngine = 0;
+        _idForPaymentEngine = 1;
         GS50 = IERC20(_GS50Address);
     }
 
@@ -95,8 +95,6 @@ contract ERC721NFT is Referral, ERC721Enumerable {
         for (uint i = 0; i < reservedNFT; i++) {
             _mintSingleNFT();
         }
-        // paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
-        // GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
     }
 
     function setBaseURI(string memory _baseTokenURI) public onlyOwner {

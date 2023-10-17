@@ -59,4 +59,8 @@ contract Referral is Ownable {
         (bool success, ) = (msg.sender).call{value: balance}("");
         require(success, "Transfer failed.");
     }
+
+    function setReferralBonus(uint256 _referralBonus) external onlyOwner {
+        referralBonus = _referralBonus;
+    }
 }

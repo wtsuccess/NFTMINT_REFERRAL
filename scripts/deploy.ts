@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const NFTReferal = await ethers.getContractFactory("NFTReferal");
+  const NFTReferal = await ethers.getContractFactory("ERC721NFT");
   const baseTokenURI = "ipfs/QmZbWNKJPAjxXuNFSEaksCJVd1M6DaKQViJBYPK2BdpDEP/";
   const paymentEngineAdd = "0xf93E68b07f8F0fe9344Cdd2913BD84Fd757ec9f3";
   const GS50Address = "0xC862066F0D8076976A9CB1084839179dd5334AD0";

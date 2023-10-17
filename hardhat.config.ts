@@ -7,6 +7,7 @@ import { config as dotenvConfig } from "dotenv";
 
 dotenvConfig();
 const { PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
+
 const config: HardhatUserConfig = {
   solidity: "0.8.19",
   defaultNetwork: "hardhat",

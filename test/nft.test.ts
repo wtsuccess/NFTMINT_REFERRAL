@@ -3,14 +3,38 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 async function basicFixture() {
-  const [owner, user1, user2] = await ethers.getSigners();
+  const [owner, user1, user2, accessPool, communityPool] =
+    await ethers.getSigners();
   const user1Address = user1.address;
   const user2Address = user2.address;
 
-  // const NFT = await ethers.getContractFactory("NFTReferal");
+  // GS Token deploy
+  const GS50 = await ethers.getContractFactory("auto_pool");
+  const gs50 = await GS50.deploy();
+  const gs50Address = gs50.address;
+
+  // PaymentEngine deploy
+  const Payment = await ethers.getContractFactory("MasterPaymentContract");
+  const payment = await Payment.deploy(
+    gs50Address,
+    accessPool.address,
+    communityPool.address
+  );
+  const paymentAddress = payment.address;
+
+  // NFT with referral deploy
   const NFT = await ethers.getContractFactory("ERC721NFT");
   const baseTokenURI = "ipfs://QmZbWNKJPAjxXuNFSEaksCJVd1M6DaKQViJBYPK2BdpDEP/";
-  const nft = await NFT.deploy(true, 100, 1, baseTokenURI, 1000, 10000, );
+  const nft = await NFT.deploy(
+    true,
+    100,
+    1,
+    baseTokenURI,
+    1000,
+    10000,
+    paymentAddress,
+    gs50Address
+  );
   await nft.deployed();
   return { nft, owner, user1, user2, user1Address, user2Address };
 }

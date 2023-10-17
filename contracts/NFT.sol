@@ -20,35 +20,31 @@ contract ERC721NFT is Referral, ERC721Enumerable {
 
     uint256 public price;
     uint256 public maxSupply;
+    uint256 public _idForPaymentEngine;
+
+    // mapping(uint256 => bool) public idForSale;
+    mapping(address => bool) public administrators;
 
     string public baseTokenURI;
     bool public publicMint;
 
     IPaymentEngine paymentEngine;
 
-    uint256 public _idForPaymentEngine;
-
     constructor(
-        bool _publicMint,
-        uint256 _maxSupply,
-        uint256 _price,
         string memory _baseTokenURI,
         uint256 _referralBonus,
         uint256 _decimals,
         address _paymentEngineAdd,
         address _GS50Address
     ) ERC721("ReferralNFT", "RNFT") Referral(_referralBonus, _decimals) {
-        publicMint = _publicMint;
-        maxSupply = _maxSupply;
+        // idForSale[1] = true,
+        price = 0.01 ether;
+        publicMint = true;
+        maxSupply = 100;
         setBaseURI(_baseTokenURI);
-        price = _price;
         paymentEngine = IPaymentEngine(_paymentEngineAdd);
         _idForPaymentEngine = 1;
         GS50 = IERC20(_GS50Address);
-    }
-
-    function setPrice(uint256 _price) external onlyOwner {
-        price = _price;
     }
 
     function buyMint(uint _count, bytes32 _referralCode) external payable {
@@ -66,14 +62,18 @@ contract ERC721NFT is Referral, ERC721Enumerable {
             _mintSingleNFT();
         }
 
+        generateReferralCode(msg.sender);
         if (totalMinted == 0) {
-            generateReferralCode(msg.sender);
             paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
             GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
             return;
         }
 
-        generateReferralCode(msg.sender);
+        if (_referralCode == bytes32(0)) {
+            paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
+            GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
+            return;
+        }
         address referrer = referralCodeToAddress[_referralCode];
         console.log("user", msg.sender);
         console.log("referrer", referrer);
@@ -86,15 +86,23 @@ contract ERC721NFT is Referral, ERC721Enumerable {
         }
 
         paymentEngine.buyGS50{value: msg.value}(_idForPaymentEngine);
+
         GS50.transfer(_msgSender(), GS50.balanceOf(address(this)));
     }
 
-    function adminMint(uint256 reservedNFT) external onlyOwner {
+    modifier onlyAdmin() {
+        require(administrators[msg.sender], "ERROR: only administrator");
+        _;
+    }
+
+    function adminMint(uint256 reservedNFT) external onlyAdmin {
         uint totalMinted = _tokenIds.current();
+        // require(idForSale[id], "ERROR: This token id is not on sale");
         require(totalMinted.add(reservedNFT) < maxSupply, "Not enough NFTs");
         for (uint i = 0; i < reservedNFT; i++) {
             _mintSingleNFT();
         }
+        generateReferralCode(msg.sender);
     }
 
     function setBaseURI(string memory _baseTokenURI) public onlyOwner {
@@ -103,6 +111,26 @@ contract ERC721NFT is Referral, ERC721Enumerable {
 
     function _baseURI() internal view virtual override returns (string memory) {
         return baseTokenURI;
+    }
+
+    function addAdministrators(address _admin) public onlyOwner {
+        administrators[_admin] = true;
+    }
+
+    function removeAdministrator(address _add) public onlyOwner {
+        administrators[_add] = false;
+    }
+
+    function setPrice(uint256 _price) external onlyOwner {
+        price = _price;
+    }
+
+    function changePaymentEngine(address _paymentEngineAdd) public onlyOwner {
+        paymentEngine = IPaymentEngine(_paymentEngineAdd);
+    }
+
+    function changePaymentEngineId(uint256 _newId) public onlyOwner {
+        _idForPaymentEngine = _newId;
     }
 
     function _mintSingleNFT() private {

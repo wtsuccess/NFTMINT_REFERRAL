@@ -11,10 +11,10 @@ contract Referral is Ownable {
     using SafeMath for uint256;
 
     uint256 public referralBonus;
-    uint256 decimals;
+    uint256 public decimals;
 
-    mapping(address => bytes32) public addressToReferralCode; // address => referalCode
-    mapping(bytes32 => address) public referralCodeToAddress; // referrer => referree
+    mapping(address => bytes32) public addressToReferralCode; 
+    mapping(bytes32 => address) public referralCodeToAddress; 
 
     event RegisteredReferralCode(address referee, bytes32 referralCode);
     event PaidReferral(address from, address to, uint amount);

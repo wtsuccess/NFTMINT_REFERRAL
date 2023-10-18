@@ -5,8 +5,6 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "hardhat/console.sol";
-
 contract Referral is Ownable {
     using SafeMath for uint256;
 
